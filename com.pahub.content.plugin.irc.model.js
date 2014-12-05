@@ -1,5 +1,3 @@
-var irc = require('irc');
-
 // view model for the channel
 function channel_view_model(parent, channel_id, channel_name, channel_closable) {
     var self = this;
@@ -154,7 +152,7 @@ function user_view_model (parent, nick, mode) {
 }
 
 // view model for the irc client
-function irc_view_model () {    
+function irc_view_model (irc) {    
     // objects for the notices
     var notice_join_part = {nick: '!', color: 'cyan'};
     var notice_kick = {nick: '!', color: 'red'};

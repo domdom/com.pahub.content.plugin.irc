@@ -59,7 +59,7 @@
             <!-- /ko -->
             <!-- ko if: show_user_list_button -->
                     <div class="irc text-button irc-user-tab" data-bind="click: toggle_user_list">
-                        <span data-bind="text: active_channel().users().length"></span> online
+                        <span data-bind="text: active_channel().users().length + ' online'"></span>
                     </div>
             <!-- /ko -->
         </div>
