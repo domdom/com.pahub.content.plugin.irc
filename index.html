@@ -1,0 +1,90 @@
+<!-- ##### templates ################################## -->
+<!-- tab template -->
+<script type="text/html" id="irc-template-tab">
+    <div class="irc text-button" data-bind="click: select, css : {'text-button-selected' : is_active}">
+<!-- ko if: is_closable -->
+        <span class="irc-tab-close" data-bind="clickBubble: false, click: on_close"></span>
+<!-- /ko -->
+        <span data-bind="text: name"></span>
+<!-- ko if: is_unread -->
+        <span class="irc-tab-unread" data-bind="text: '(' + is_unread() + ')'"></span>
+        <!-- <span class="irc-tab-unread" data-bind="text: is_unread"></span> -->
+<!-- /ko -->
+    </div>
+</script>
+
+<!-- message template -->
+<script type="text/html" id="irc-template-message-message">
+    <div class="irc-message-line" data-bind="autoscroll : {}">
+        <span class="irc-message-time" data-bind="text: get_time"></span>
+        <!-- <div class="irc-message-text"> -->
+            <span class="irc-message-from" data-bind="text: from.nick, style: {color: from.color}"></span>
+            <pre data-bind="parsedMessage"></pre>
+        <!-- </div> -->
+    </div>
+</script>
+
+<!-- notice template -->
+<script type="text/html" id="irc-template-message-notice">
+    <div class="irc-message-line" data-bind="autoscroll : {}">
+        <div class="irc-message-time" data-bind="text: get_time()"></div>
+        <div class="irc-message-text">
+            <span class="irc-notice-from" data-bind="text: from.nick, style: {color: from.color}"></span>
+            <pre data-bind="parsedMessage"></pre>
+        </div>
+    </div>
+</script>
+
+<!-- status message template -->
+<script type="text/html" id="irc-template-message-status">
+    <div class="irc-message-line" data-bind="autoscroll : {}">
+        <div class="irc-message-time" data-bind="text: get_time()"></div>
+        <pre data-bind="text: text"></pre>
+    </div>
+</script>
+<!-- hr message template -->
+<script type="text/html" id="irc-template-message-rule">
+    <hr class="irc-message-rule"/>
+</script>
+
+
+<div id='irc-root'>
+<!-- ko with: $root.irc -->
+<!-- ko if: is_connected -->
+    <!-- ##### header ################################## -->
+    <div class="irc-header">
+        <!-- #### tab sections ################################## -->
+        <div class="irc-tab-container">
+            <!-- ko template: { name: 'irc-template-tab', foreach: channel_list } -->
+            <!-- /ko -->
+            <!-- ko if: show_user_list_button -->
+                    <div class="irc text-button irc-user-tab" data-bind="click: toggle_user_list">
+                        <span data-bind="text: active_channel().users().length"></span> online
+                    </div>
+            <!-- /ko -->
+        </div>
+    </div>
+    <!-- ##### body / messages ################################## -->
+
+    <!-- ko foreach: channel_list -->
+        <div class="irc-body" data-bind="style: {visibility: is_active() ? 'visible' : 'hidden' }, event: {scroll: on_scroll}">
+            <div class="irc-message-container" data-bind="template: { name: function(e){return'irc-template-message-'+e.type;}, foreach: messages}">
+            </div>
+        </div>
+        <!-- ko if: is_active() && $parent.show_user_list -->
+            <div class="irc-body irc-name-list" data-bind="foreach: users">
+                <span data-bind="text: mode() + nick(), style: {color: color, display: 'block'}"></span>
+            </div>
+        <!-- /ko -->
+    <!-- /ko -->
+    <!-- ##### footer ################################## -->
+    <div class="irc-footer">
+        <div contenteditable="true" class="irc-input" data-bind="event : {keydown: input_keydown}">
+        </div>
+    </div>
+<!-- /ko -->
+<!-- ko ifnot: is_connected -->
+    <!-- put options section here -->
+<!-- /ko -->
+<!-- /ko -->
+</body>

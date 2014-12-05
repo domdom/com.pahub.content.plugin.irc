@@ -1,0 +1,24 @@
+{
+    "content_id": "com.pahub.content.plugin.irc",
+    "store_id": "com.pahub.content.plugin.store.plugin",
+    "display_name": "IRC Chat",
+    "description": "Plugin for community IRC Chat",
+    "author": "Dom",
+    "version": "0.0.1",
+    "date": "2014/12/01",
+    "resources": [
+        "com.pahub.content.plugin.irc.config.js",
+        "com.pahub.content.plugin.irc.model.js",
+        "com.pahub.content.plugin.irc.colors.js",
+        "com.pahub.content.plugin.irc.main.js",
+        "com.pahub.content.plugin.irc.css"
+    ],
+    "load_func": "load_plugin_irc",
+    "unload_func": "unload_plugin_irc",
+    "enabled": true,
+    "required": {
+        "com.pahub": ">=0.2.1",
+        "com.pahub.content.plugin.contenthub": ">=0.2.0",
+        "com.pahub.content.plugin.community": ">=0.2.0"
+    }
+}
