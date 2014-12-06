@@ -39,6 +39,9 @@ function irc_view_model (irc, color) {
             };
             return users;
         });
+        self.users_length = ko.computed(function () {
+            return self.users().length;
+        });
 
 
         // when this channel is closed
@@ -153,6 +156,9 @@ function irc_view_model (irc, color) {
             return color;
         });
     }
+    ///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
 
     // objects for the notices
     var notice_join_part = {nick: '!', color: 'cyan'};
@@ -292,7 +298,6 @@ function irc_view_model (irc, color) {
         self.active_channel(channel);
         channel.is_unread(0);
     };
-
 
     /////////////////////////////////////////////////////
     ////// users connected to this channel
@@ -445,8 +450,10 @@ function irc_view_model (irc, color) {
 
                 self.getUser(oldnick).part(channels);
                 self.addUser(newnick).join(channels);
+                // transfer mode as well
+                self.getUser(newnick).mode(self.getUser(oldnick).mode());
 
-                if (channels.indexOf(self.active_channel()) === -1) { return; }
+                if (channels.indexOf(self.active_channel().id) === -1) { return; }
                 self.active_channel().addMessageItem({
                     type: "notice",
                     text: oldnick + ' has changed their nick to ' + newnick,
