@@ -149,10 +149,14 @@ function irc_view_model (irc, color) {
             // this user is not in current channel
             if (channel.users().indexOf(self) === -1) {
                 color = "#777";
+            } else if (channel.id === self.nick()) {
+                if (self.channels().length === 1) {
+                    color = "#777";
+                }
             }
-            // if (self.nick() === parent.nick()) {
-            // color = '#fff';
-            // }
+            if (self.nick() === parent.nick()) {
+                color = '#008cff';
+            }
             return color;
         });
     }
@@ -509,6 +513,7 @@ function irc_view_model (irc, color) {
         // handles an irc message directly to me
         irc_client.on('pm', function (from, text, message) {
             self.getUser(from).join(from);
+            self.getUser(self.nick()).join(from);
             // add a message item to the right channel
             self.addMessageItem(from, {
                 type: "message",
