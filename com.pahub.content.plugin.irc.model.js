@@ -5,8 +5,8 @@ function irc_view_model (irc, color) {
     function channel_view_model(parent, channel_id, channel_name, channel_closable) {
         var self = this;
 
-        self.id = channel_id; // the id of the channel
-        self.name = channel_name; // the name of the channel
+        self.id = ko.observable(channel_id); // the id of the channel
+        self.name = ko.observable(channel_name); // the name of the channel
         self.messages = ko.observableArray([]); // a list of messages on this channel
 
         self.is_unread = ko.observable(0); // the number of unread messages
@@ -33,7 +33,7 @@ function irc_view_model (irc, color) {
         self.users = ko.computed(function () {
             var users = [];
             for (var i = parent.user_list().length - 1; i >= 0; i--) {
-                if (parent.user_list()[i].channels().indexOf(self.id) !== -1) {
+                if (parent.user_list()[i].channels().indexOf(self.id()) !== -1) {
                     users.push(parent.user_list()[i]);
                 }
             };
@@ -47,8 +47,8 @@ function irc_view_model (irc, color) {
         // when this channel is closed
         self.on_close = function (data) {
             parent.removeChannel(data);
-            if (/^#|&/.test(self.id)) {
-                parent.irc_client.part(self.id);
+            if (/^#|&/.test(self.id())) {
+                parent.irc_client.part(self.id());
             }
             if (parent.active_channel() === self) {
                 parent.active_channel(data.prev_active);
@@ -123,6 +123,7 @@ function irc_view_model (irc, color) {
 
         // joins a channel
         self.join = function (channel_id) {
+            console.log(self.nick(), 'joining ', channel_id);
             if (typeof channel_id === typeof "") channel_id = [channel_id];
             for (var i = 0; i < channel_id.length; i++) {
                 if (self.channels.indexOf(channel_id[i]) === -1) {
@@ -149,7 +150,7 @@ function irc_view_model (irc, color) {
             // this user is not in current channel
             if (channel.users().indexOf(self) === -1) {
                 color = "#777";
-            } else if (channel.id === self.nick()) {
+            } else if (channel.id() === self.nick()) {
                 if (self.channels().length === 1) {
                     color = "#777";
                 }
@@ -217,12 +218,13 @@ function irc_view_model (irc, color) {
 
     // whether the user list should be shown or not
     self.show_user_list = ko.computed(function () {
-        var ret = (/^#|&/).test(self.active_channel().id) && self.options.show_user_list();
+        var ret = (/^#|&/).test(self.active_channel().id());
+        ret = self.options.show_user_list() && ret;
         return ret;
     });
     // whether or not the userlist button should be shown or not
     self.show_user_list_button = ko.computed(function () {
-        var ret = (/^#|&/).test(self.active_channel().id);
+        var ret = (/^#|&/).test(self.active_channel().id());
         return ret;
     });
 
@@ -259,7 +261,7 @@ function irc_view_model (irc, color) {
         channel_closable = channel_closable || false;
         // check if channel already exists
         var match = ko.utils.arrayFirst(self.channel_list(), function (item) {
-            return item.id === channel_id;
+            return item.id() === channel_id;
         });
 
         // if no match, create new channel datastructure
@@ -277,7 +279,7 @@ function irc_view_model (irc, color) {
     // gets the channel for a channel id
     self.getChannel = function (channel) {
         var match = ko.utils.arrayFirst(self.channel_list(), function(item) {
-            return item.id === channel;
+            return item.id() === channel;
         });
         if (!match) {
             return self.addChannel(channel);
@@ -289,7 +291,7 @@ function irc_view_model (irc, color) {
     self.removeChannel = function (channel) {
         if (typeof channel === 'string') {
             channel = ko.utils.arrayFirst(self.channel_list(), function(item) {
-                return item.id === channel;
+                return item.id() === channel;
             });
         }
         self.channel_list.remove(channel);
@@ -344,20 +346,16 @@ function irc_view_model (irc, color) {
             channels: [],
             join: function (){},
             part: function (){},
-            color: '#777'
+            color: '#F00'
         }
     };
 
     //////// Other data
-    // updates the client's nick name
-    self.updateNick = function (new_nick) {
-        self.nick(new_nick);
-    };
     // check for input
     self.sendMessage = function (text){
         console.log(self.nick());
         if (self.active_channel() === status_channel) return;
-        self.irc_client.say(self.active_channel().id, text);
+        self.irc_client.say(self.active_channel().id(), text);
         self.active_channel().addMessageItem({
             type: "message",
             from: self.getUser(self.nick()),
@@ -451,18 +449,37 @@ function irc_view_model (irc, color) {
                     from: notice_nick
                 });
             } else {
-
-                self.getUser(oldnick).part(channels);
-                self.addUser(newnick).join(channels);
+                var old_user = self.getUser(oldnick);
+                var new_user = self.addUser(newnick);
+                
+                var channels = old_user.channels().splice(0);
+                
+                console.log(channels);
+                
+                // send nick change message to all channels which the user is connected to
+                for (var i = 0; i < channels.length; i++) {
+                    var channel = self.getChannel(channels[i]);
+                    channel.addMessageItem({
+                        type: "notice",
+                        text: oldnick + ' has changed their nick to ' + newnick,
+                        from: notice_nick
+                    });
+                    // new user joins this channel, unless it's a pm channel
+                    if (channels[i] === oldnick) {
+                        // join the pm tab
+                        new_user.join(newnick);
+                        // rename the pm tab
+                        channel.id(newnick);
+                        channel.name(newnick);
+                    } else {
+                        // otherwise join as normal
+                        new_user.join(channels[i]);
+                    }
+                }
+                // parts the old user from all it's channels
+                old_user.part(channels);
                 // transfer mode as well
-                self.getUser(newnick).mode(self.getUser(oldnick).mode());
-
-                if (channels.indexOf(self.active_channel().id) === -1) { return; }
-                self.active_channel().addMessageItem({
-                    type: "notice",
-                    text: oldnick + ' has changed their nick to ' + newnick,
-                    from: notice_nick
-                });
+                new_user.mode(old_user.mode());
             }
         });
 
@@ -474,13 +491,13 @@ function irc_view_model (irc, color) {
             // check if this is a notice directed at client
             if (to === self.nick()) {
                 // if so, the notice appears in the currently active channel
-                channel = self.active_channel().id;
+                channel = self.active_channel().id();
             }
 
             // notice for the special status tab
             // these are normally pre-join messages
             if (!from) {
-                channel = status_channel.id;
+                channel = status_channel.id();
                 type = "status";
                 from = notice_status;
             }
@@ -514,8 +531,10 @@ function irc_view_model (irc, color) {
         irc_client.on('pm', function (from, text, message) {
             self.getUser(from).join(from);
             self.getUser(self.nick()).join(from);
+            
+            var channel = self.addChannel(from);
             // add a message item to the right channel
-            self.addMessageItem(from, {
+            channel.addMessageItem({
                 type: "message",
                 text: text,
                 from: self.getUser(from)
