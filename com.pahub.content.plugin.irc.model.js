@@ -123,7 +123,6 @@ function irc_view_model (irc, color) {
 
         // joins a channel
         self.join = function (channel_id) {
-            console.log(self.nick(), 'joining ', channel_id);
             if (typeof channel_id === typeof "") channel_id = [channel_id];
             for (var i = 0; i < channel_id.length; i++) {
                 if (self.channels.indexOf(channel_id[i]) === -1) {
@@ -134,7 +133,6 @@ function irc_view_model (irc, color) {
         };
         // parts a channel
         self.part = function (channel_id) {
-            console.log(self.nick(), 'parting ', channel_id);
             if (typeof channel_id === typeof "") channel_id = [channel_id];
             for (var i = 0; i < channel_id.length; i++) {
                 self.channels.remove(channel_id[i]);
@@ -216,17 +214,19 @@ function irc_view_model (irc, color) {
     // whether or not we have connected already
     self.is_connected = ko.observable(false);
 
-    // whether the user list should be shown or not
-    self.show_user_list = ko.computed(function () {
-        var ret = (/^#|&/).test(self.active_channel().id());
-        ret = self.options.show_user_list() && ret;
-        return ret;
-    });
     // whether or not the userlist button should be shown or not
     self.show_user_list_button = ko.computed(function () {
         var ret = (/^#|&/).test(self.active_channel().id());
         return ret;
     });
+    
+    // whether the user list should be shown or not
+    self.show_user_list = ko.computed(function () {
+        var ret = self.show_user_list_button();
+        ret = self.options.show_user_list() && ret;
+        return ret;
+    });
+
 
     /////////////////////////////////////////////
     //// event bindings
@@ -238,7 +238,6 @@ function irc_view_model (irc, color) {
     };
 
     self.input_keydown = function (d, e) {
-        console.log(e);
         // trap the return key being pressed
         //TODO: process tab key for auto completion
         if (e.keyCode === 13) {
@@ -353,8 +352,8 @@ function irc_view_model (irc, color) {
     //////// Other data
     // check for input
     self.sendMessage = function (text){
-        console.log(self.nick());
         if (self.active_channel() === status_channel) return;
+        
         self.irc_client.say(self.active_channel().id(), text);
         self.active_channel().addMessageItem({
             type: "message",
@@ -453,8 +452,6 @@ function irc_view_model (irc, color) {
                 var new_user = self.addUser(newnick);
                 
                 var channels = old_user.channels().splice(0);
-                
-                console.log(channels);
                 
                 // send nick change message to all channels which the user is connected to
                 for (var i = 0; i < channels.length; i++) {
