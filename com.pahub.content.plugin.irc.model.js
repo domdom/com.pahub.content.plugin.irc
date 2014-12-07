@@ -33,10 +33,17 @@ function irc_view_model (irc, color) {
         self.users = ko.computed(function () {
             var users = [];
             for (var i = parent.user_list().length - 1; i >= 0; i--) {
+                // force dependancy on the user's nick
+                parent.user_list()[i].nick();
                 if (parent.user_list()[i].channels().indexOf(self.id()) !== -1) {
                     users.push(parent.user_list()[i]);
                 }
             };
+            
+            users.sort(function (a, b) {
+                return (a.mode() + a.nick()).localeCompare(b.mode() + b.nick(), "en-US", {sensitivity: "base"});                
+            })
+            
             return users;
         });
         self.users_length = ko.computed(function () {
@@ -197,7 +204,6 @@ function irc_view_model (irc, color) {
     self.options.show_user_list = ko.observable(false);
     // is the user going to log in?
     self.options.using_login = ko.observable(false);
-
 
     /////////////////////////////////////////////
     //// ui state variables
