@@ -1,7 +1,9 @@
 #TODO:
 ##High Priority
-<del>- Report kills</del>
-- Handle the invite command
+- <del>Report kills</del>
+- Have a preconnection screen
+    - lets you set a prefered nick name, or log in
+- Handle the invite command (by parsing channel links)
 
 ##Medium
 - Parse the input field for irc commands
