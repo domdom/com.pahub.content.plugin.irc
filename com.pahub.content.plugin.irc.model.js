@@ -40,6 +40,7 @@ function irc_view_model (irc, color) {
                 }
             };
             
+            // sort the users based on nick name and mode
             users.sort(function (a, b) {
                 return (a.mode() + a.nick()).localeCompare(b.mode() + b.nick(), "en-US", {sensitivity: "base"});                
             })
@@ -605,6 +606,26 @@ function irc_view_model (irc, color) {
 
             self.getUser(nick).part(channel);
         });
+        
+        // when a user getting killed
+        irc_client.on('kill', function (nick, reason, channels, message) {
+            reason = reason || "";
+            // check if we are the ones parting right now
+            if (nick === self.nick()) {
+                // TODO: handle this case, although I don't know how the ui should respond yet
+            } else {
+                // when a user quits
+                for (var i = 0; i < channels.length; i++) {
+                    self.addMessageItem(channels[i], {
+                        type: "notice",
+                        text: nick + '[' + message.user + '@' + message.host + '] was killed [' + reason + ']',
+                        from: notice_kick,
+                    });
+                }
+            }
+            self.getUser(nick).part(channels);
+        });
+        
 
         // when a user quits's
         irc_client.on('quit', function (nick, reason, channels, message) {

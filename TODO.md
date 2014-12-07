@@ -1,6 +1,6 @@
 #TODO:
 ##High Priority
-- Report kills
+<del>- Report kills</del>
 - Handle the invite command
 
 ##Medium
