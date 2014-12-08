@@ -192,23 +192,35 @@ function irc_view_model (irc, color) {
     // Current user info
     self.nick = ko.observable("player");
     // incase of a log in
-    self.username = ko.observable();
-    self.password = ko.observable();
+    self.username = ko.observable('user');
+    self.password = ko.observable('');
 
 
     /////////////////////////////////////////////
-    //// options
+    //// options / settings
     /////////////////////////////////////////////
-
     self.options = {};
-    self.options.default_nick = ko.observable('pairc');
-    self.options.show_user_list = ko.observable(false);
+    // options for message display
+    self.options.display = {};
+    self.options.display.nick = ko.observable(true);
+    self.options.display.join = ko.observable(true);
+    self.options.display.part = ko.observable(true);
+    self.options.display.kill = ko.observable(true);
+    self.options.display.kick = ko.observable(true);
+    self.options.display.quit = ko.observable(true);
+    // option for default action on nick click
+    self.options.default_actions = {}; // will use later
     // is the user going to log in?
     self.options.using_login = ko.observable(false);
+
+
 
     /////////////////////////////////////////////
     //// ui state variables
     /////////////////////////////////////////////
+    
+    // temporary state variables (the only things that depend on this are the computables)
+    var show_user_list = ko.observable(false);
 
     // the last active channel
     self.active_channel = ko.observable({});
@@ -230,7 +242,7 @@ function irc_view_model (irc, color) {
     // whether the user list should be shown or not
     self.show_user_list = ko.computed(function () {
         var ret = self.show_user_list_button();
-        ret = self.options.show_user_list() && ret;
+        ret = show_user_list() && ret;
         return ret;
     });
 
@@ -241,9 +253,10 @@ function irc_view_model (irc, color) {
 
     // toggles user list display
     self.toggle_user_list = function () {
-        self.options.show_user_list(!self.options.show_user_list());
+        show_user_list(!show_user_list());
     };
 
+    // event handler for keys on the input field
     self.input_keydown = function (d, e) {
         // trap the return key being pressed
         //TODO: process tab key for auto completion
@@ -657,5 +670,5 @@ function irc_view_model (irc, color) {
     // TODO: use the settings plugin to get this stuff
     // do initialisation stuff
     initialise_ko();
-    initialise_irc();
+    // initialise_irc();
 }

@@ -6,6 +6,22 @@
     height: 100%;
     margin: 0;
 }
+/*############################################*/
+/* connection part */
+/*############################################*/
+.irc-connection-dialog {
+    width: 600px;
+    height: 250px;
+    
+    padding: 25px;
+    
+    margin: auto;
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    
+    border: 1px solid #555;
+}
+
 
 /*############################################*/
 /* header part */
@@ -222,4 +238,25 @@
 
 .irc-input:focus {
     border: 1px solid #008cff;
+}
+
+.irc-input-field {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 12pt;
+    color: white;
+    background-color: #2d2d2d;
+    
+    -webkit-box-sizing: border-box;
+    border: 1px solid #555;
+    outline: none;
+}
+
+.irc-input-field:focus {
+    border: 1px solid #008cff;
+}
+
+.irc-input-label {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 12pt;
+/*    color: white;*/
 }

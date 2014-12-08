@@ -84,7 +84,12 @@
     </div>
 <!-- /ko -->
 <!-- ko ifnot: is_connected -->
-    <!-- put options section here -->
+    <div class="irc-connection-dialog">
+        <span class="heading1">Connect to Planetary Annihilation IRC:</span>
+        <div>
+        <label class="irc-input-label">Nick:<input class="irc-input-field" data-bind="value: $root.irc.nick"></label><br/>
+        </div>
+    </div>
 <!-- /ko -->
 <!-- /ko -->
 </body>
