@@ -68,7 +68,7 @@
 
     <!-- ko foreach: channel_list -->
         <div class="irc-body" data-bind="style: {visibility: is_active() ? 'visible' : 'hidden' }, event: {scroll: on_scroll}">
-            <div class="irc-message-container" data-bind="template: { name: function(e){return'irc-template-message-'+e.type;}, foreach: messages}">
+            <div class="irc-message-container" data-bind="template:{name:function(e){return'irc-template-message-'+e.type;},foreach: messages}">
             </div>
         </div>
         <!-- ko if: is_active() && $parent.show_user_list -->

@@ -259,6 +259,11 @@
     right: 0;
 }
 
+/*############################################*/
+/* input */
+/*############################################*/
+
+
 .irc-input {
     font-size: 10pt;
     color: white;
@@ -301,5 +306,4 @@
 .irc-input-label {
     font-family: "Courier New", Courier, monospace;
     font-size: 12pt;
-/*    color: white;*/
 }

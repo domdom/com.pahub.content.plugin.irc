@@ -1,8 +1,8 @@
 #TODO:
 ##High Priority
 - <del>Report kills</del> Done!
-- Have a preconnection screen
-    - lets you set a prefered nick name, or log in
+- <del>Have a preconnection screen</del> Done!
+    - <del>lets you set a prefered nick name, or log in</del> Done!
 - Handle the invite command (by parsing channel links)
 
 ##Medium
