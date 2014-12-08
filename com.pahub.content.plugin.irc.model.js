@@ -1,4 +1,3 @@
-
 // view model for the irc client
 function irc_view_model (irc, color) {
     // view model for the channel
@@ -53,14 +52,14 @@ function irc_view_model (irc, color) {
 
 
         // when this channel is closed
-        self.on_close = function (data) {
-            parent.removeChannel(data);
+        self.on_close = function () {
+            parent.removeChannel(self);
             if (/^#|&/.test(self.id())) {
                 parent.irc_client.part(self.id());
             }
             if (parent.active_channel() === self) {
-                parent.active_channel(data.prev_active);
-                data.prev_active.select();
+                parent.active_channel(self.prev_active);
+                self.prev_active.select();
             }
         };
 
@@ -258,12 +257,18 @@ function irc_view_model (irc, color) {
     // whether or not to show the login options
     self.toggle_login_options = function () {
         self.options.login_options(!self.options.login_options());
-    }
+    };
     
     // connect to irc
-    self.connect_to_irc = function () {
+    self.connect = function () {
+        self.is_connected(true);
         initialise_irc();
-    }
+    };
+    // disconnect from irc and set states
+    self.quit = function () {
+        self.is_connected(false);
+        self.irc_client.disconnect('quiting');
+    };
 
     // event handler for keys on the input field
     self.input_keydown = function (d, e) {
@@ -451,14 +456,21 @@ function irc_view_model (irc, color) {
 
     // initialises the irc client
     function initialise_irc () {
-        self.is_connected(true);
         //*
         // set a temp nick
-
-        var irc_client = new irc.Client(config.server, self.nick(), {
+        var options = {
+            autoRejoin: false,
             channels: config.channels,
-            realName: 'pahub_irc:' + self.nick()
-        });
+            realName: 'pahub_irc:' + self.nick(),
+            userName: 'pahub_irc:' + self.nick()
+        };
+        
+        if (self.options.login_options()) {
+            options.userName = self.username();
+            options.password = self.password();
+        }
+
+        var irc_client = new irc.Client(config.server, self.nick(), options);
 
         // get the user's new nick
         irc_client.on('registered', function(message) {
@@ -470,36 +482,40 @@ function irc_view_model (irc, color) {
             // it's us!
             if (oldnick === self.nick()) {
                 self.nick(newnick);
-                self.active_channel().addMessageItem({
-                    type: "notice",
-                    text: 'You are now know as ' + newnick,
-                    from: notice_nick
-                });
-            } else {
-                var old_user = self.getUser(oldnick);
-                var new_user = self.addUser(newnick);
-                
-                var channels = old_user.channels().splice(0);
-                
-                // send nick change message to all channels which the user is connected to
-                for (var i = 0; i < channels.length; i++) {
-                    var channel = self.getChannel(channels[i]);
+            }
+            
+            var old_user = self.getUser(oldnick);
+            var new_user = self.addUser(newnick);
+            
+            var channels = old_user.channels().splice(0);
+            
+            // send nick change message to all channels which the user is connected to
+            for (var i = 0; i < channels.length; i++) {
+                var channel = self.getChannel(channels[i]);
+                if (oldnick === self.nick()) {
+                    channel.addMessageItem({
+                        type: "notice",
+                        text: 'You are now known as ' + newnick,
+                        from: notice_nick
+                    });
+                } else {
                     channel.addMessageItem({
                         type: "notice",
                         text: oldnick + ' has changed their nick to ' + newnick,
                         from: notice_nick
                     });
-                    // new user joins this channel, unless it's a pm channel
-                    if (channels[i] === oldnick) {
-                        // join the pm tab
-                        new_user.join(newnick);
-                        // rename the pm tab
-                        channel.id(newnick);
-                        channel.name(newnick);
-                    } else {
-                        // otherwise join as normal
-                        new_user.join(channels[i]);
-                    }
+                }
+                
+                // new user joins this channel, unless it's a pm channel
+                if (channels[i] === oldnick) {
+                    // join the pm tab
+                    new_user.join(newnick);
+                    // rename the pm tab
+                    channel.id(newnick);
+                    channel.name(newnick);
+                } else {
+                    // otherwise join as normal
+                    new_user.join(channels[i]);
                 }
                 // parts the old user from all it's channels
                 old_user.part(channels);
@@ -578,7 +594,6 @@ function irc_view_model (irc, color) {
             self.addUser(nick).join(channel);
             // check to see if this channel should be persistent
             if (config.channels.indexOf(channel) !== -1) {
-                // channel name, channel id, persistence
                 self.addChannel(channel, channel, true);
             } else {
                 self.addChannel(channel);
@@ -604,7 +619,7 @@ function irc_view_model (irc, color) {
                 self.addMessageItem(channel, {
                     type: "notice",
                     text: nick + '[' + message.user + '@' + message.host + '] has left ' + channel + ' [' + reason + ']',
-                    from: notice_join_part,
+                    from: notice_join_part
                 });
             }
 
@@ -614,16 +629,18 @@ function irc_view_model (irc, color) {
         // when a user getting kicked
         irc_client.on('kick', function (channel, nick, by, reason, message) {
             reason = reason || "";
+            var text = nick + '[' + message.user + '@' + message.host + '] was kicked from ' + channel + ' by ' + by + ' [' + reason + ']';
             // check if we are the one leaving right now
             if (nick === self.nick()) {
-                self.removeChannel(channel);
-            } else {
-                self.addMessageItem(channel, {
-                    type: "notice",
-                    text: nick + '[' + message.user + '@' + message.host + '] was kicked from ' + channel + ' by ' + by + ' [' + reason + ']',
-                    from: notice_kick,
-                });
+                self.getChannel(channel).on_close();
+                text = 'You were kick from ' + channel + ' by ' + by + ' [' + reason + ']';
+                channel = status_channel.id();
             }
+            self.addMessageItem(channel, {
+                type: "notice",
+                text: text,
+                from: notice_kick
+            });
 
             self.getUser(nick).part(channel);
         });
@@ -633,14 +650,14 @@ function irc_view_model (irc, color) {
             reason = reason || "";
             // check if we are the ones parting right now
             if (nick === self.nick()) {
-                // TODO: handle this case, although I don't know how the ui should respond yet
+                self.quit();
             } else {
                 // when a user quits
                 for (var i = 0; i < channels.length; i++) {
                     self.addMessageItem(channels[i], {
                         type: "notice",
                         text: nick + '[' + message.user + '@' + message.host + '] was killed [' + reason + ']',
-                        from: notice_kick,
+                        from: notice_kick
                     });
                 }
             }
@@ -653,14 +670,14 @@ function irc_view_model (irc, color) {
             reason = reason || "";
             // check if we are the ones parting right now
             if (nick === self.nick()) {
-                // TODO: handle this case, although I don't know how the ui should respond yet
+                self.quit();
             } else {
                 // when a user quits
                 for (var i = 0; i < channels.length; i++) {
                     self.addMessageItem(channels[i], {
                         type: "notice",
                         text: nick + '[' + message.user + '@' + message.host + '] has quit [' + reason + ']',
-                        from: notice_join_part,
+                        from: notice_join_part
                     });
                 }
             }
