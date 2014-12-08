@@ -211,7 +211,7 @@ function irc_view_model (irc, color) {
     // option for default action on nick click
     self.options.default_actions = {}; // will use later
     // is the user going to log in?
-    self.options.using_login = ko.observable(false);
+    self.options.login_options = ko.observable(false);
 
 
 
@@ -246,7 +246,6 @@ function irc_view_model (irc, color) {
         return ret;
     });
 
-
     /////////////////////////////////////////////
     //// event bindings
     /////////////////////////////////////////////
@@ -255,6 +254,16 @@ function irc_view_model (irc, color) {
     self.toggle_user_list = function () {
         show_user_list(!show_user_list());
     };
+    
+    // whether or not to show the login options
+    self.toggle_login_options = function () {
+        self.options.login_options(!self.options.login_options());
+    }
+    
+    // connect to irc
+    self.connect_to_irc = function () {
+        initialise_irc();
+    }
 
     // event handler for keys on the input field
     self.input_keydown = function (d, e) {
@@ -268,6 +277,7 @@ function irc_view_model (irc, color) {
         }
         return true;
     }
+    
 
     /////////////////////////////////////////////
     //// tasks
@@ -444,12 +454,10 @@ function irc_view_model (irc, color) {
         self.is_connected(true);
         //*
         // set a temp nick
-        self.nick(config.nick);
 
-        var irc_client = new irc.Client(config.server, config.nick, {
+        var irc_client = new irc.Client(config.server, self.nick(), {
             channels: config.channels,
-            realName: config.nick,
-            userName: config.nick
+            realName: 'pahub_irc:' + self.nick()
         });
 
         // get the user's new nick

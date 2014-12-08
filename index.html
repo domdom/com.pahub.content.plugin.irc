@@ -84,10 +84,21 @@
     </div>
 <!-- /ko -->
 <!-- ko ifnot: is_connected -->
-    <div class="irc-connection-dialog">
-        <span class="heading1">Connect to Planetary Annihilation IRC:</span>
-        <div>
-        <label class="irc-input-label">Nick:<input class="irc-input-field" data-bind="value: $root.irc.nick"></label><br/>
+    <div class="irc-connection-dialog" data-bind="css : {'options' : options.login_options }">
+        <div class="irc-connection-title">
+            <span class="heading1">Planetary Annihilation IRC</span>
+        </div>
+        <div class="irc-connection-body">
+            <label class="irc-input-label">Nickname:<input class="irc-input-field" data-bind="value: nick"></label><br/>
+            <!-- ko if: options.login_options -->
+            <br/>
+                <label class="irc-input-label">Username:<input class="irc-input-field" data-bind="value: username"></label><br/>
+                <label class="irc-input-label">Password:<input type="password" class="irc-input-field" data-bind="value: password"></label>
+            <!-- /ko -->
+        </div>
+        <div class="irc-connection-footer">
+            <div data-bind="click: toggle_login_options" class="irc text-button">options</div>
+            <div data-bind="click: connect_to_irc" class="irc text-button irc-user-tab">connect</div>
         </div>
     </div>
 <!-- /ko -->

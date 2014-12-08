@@ -10,10 +10,8 @@
 /* connection part */
 /*############################################*/
 .irc-connection-dialog {
-    width: 600px;
-    height: 250px;
-    
-    padding: 25px;
+    width: 450px;
+    height: 120px;
     
     margin: auto;
     position: absolute;
@@ -21,6 +19,49 @@
     
     border: 1px solid #555;
 }
+
+.irc-connection-dialog.options {
+    height: 190px;
+}
+
+.irc-connection-title {
+    width: 100%;
+    height: 40px;
+    line-height: 40px;
+    
+    text-align: center;
+    
+    background-color: #222;
+    
+    border-bottom: 1px solid #555;
+}
+
+.irc-connection-body {
+    width: 100%;
+    position: absolute;
+    top: 40px;
+    bottom: 30px;
+    
+    padding: 12px;
+    padding-left: 50px;
+}
+
+.irc-connection-footer {
+    position: absolute;
+    
+    height: 30px;
+    line-height: 30px;
+    
+    padding-right: 12px;
+    padding-left: 12px;
+    
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    
+    background-color: #222;
+}
+
 
 
 /*############################################*/
