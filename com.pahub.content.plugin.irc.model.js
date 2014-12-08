@@ -275,8 +275,8 @@ function irc_view_model (irc, color) {
         // trap the return key being pressed
         //TODO: process tab key for auto completion
         if (e.keyCode === 13) {
-            self.sendMessage(e.target.innerText);
-            // TODO: parse input as commands when it starts with "/"
+            var text = e.target.innerText;
+            self.sendMessage(text);
             e.target.innerHTML = "";
             return false;
         }
@@ -461,8 +461,8 @@ function irc_view_model (irc, color) {
         var options = {
             autoRejoin: false,
             channels: config.channels,
-            realName: 'pahub_irc:' + self.nick(),
-            userName: 'pahub_irc:' + self.nick()
+            realName: 'pahub_irc_' + self.nick(),
+            userName: 'pahub_irc_' + self.nick()
         };
         
         if (self.options.login_options()) {
@@ -592,12 +592,7 @@ function irc_view_model (irc, color) {
         // when a user joins
         irc_client.on('join', function (channel, nick, message) {
             self.addUser(nick).join(channel);
-            // check to see if this channel should be persistent
-            if (config.channels.indexOf(channel) !== -1) {
-                self.addChannel(channel, channel, true);
-            } else {
-                self.addChannel(channel);
-            }
+            self.addChannel(channel);
 
             // check if we are the ones joining right now
             if (nick !== self.nick()) {
@@ -684,7 +679,9 @@ function irc_view_model (irc, color) {
             self.getUser(nick).part(channels);
         });
 
-        irc_client.on('error', function(message){console.log(message)});
+        irc_client.on('error', function(message){
+            
+        });
 
         self.irc_client = irc_client;
     };
