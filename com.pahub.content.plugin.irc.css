@@ -72,8 +72,13 @@
     width: 100%;
 }
 .irc-tab-container {
-/* padding-left: 8pt;*/
     overflow-x: auto;
+}
+
+.irc-tab-settings {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
 }
 
 .irc-tab-close {

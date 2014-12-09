@@ -276,6 +276,27 @@ function irc_view_model (irc, color) {
         //TODO: process tab key for auto completion
         if (e.keyCode === 13) {
             var text = e.target.innerText;
+            // we are dealing with a command here
+            if (text[0] === '/') {
+                // get the first space after the command
+                var nextspace = (text.indexOf(' ') + 1 || text.length + 1) - 1;
+                var command = text.slice(1,nextspace);
+                switch (command) {
+                    case 'quit':
+                        self.quit();
+                        break;
+                    case 'part':
+                        self.irc_client.part(self.active_channel().id(), text.slice(nextspace,text.length)); 
+                        break;
+                    case 'join':
+                        self;
+                        break;
+                }
+                
+            } else {
+                // not a command, send as plain message
+               
+            }
             self.sendMessage(text);
             e.target.innerHTML = "";
             return false;
