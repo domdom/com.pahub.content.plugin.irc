@@ -53,10 +53,15 @@ function irc_view_model (irc, color) {
 
         // when this channel is closed
         self.on_close = function () {
-            parent.removeChannel(self);
             if (/^#|&/.test(self.id())) {
                 parent.irc_client.part(self.id());
             }
+            self.close();
+        };
+        
+        // function for handling this tab's close
+        self.close = function () {
+            parent.removeChannel(self);
             if (parent.active_channel() === self) {
                 parent.active_channel(self.prev_active);
                 self.prev_active.select();
@@ -127,6 +132,11 @@ function irc_view_model (irc, color) {
 
         // the channels that this user is in
         self.channels = ko.observableArray([]);
+        
+        // do this when the name is clicked on
+        self.on_click = function () {
+            // check if we should pm or do a whois
+        };
 
         // joins a channel
         self.join = function (channel_id) {
@@ -172,9 +182,10 @@ function irc_view_model (irc, color) {
 
     // objects for the notices
     var notice_join_part = {nick: '!', color: 'cyan'};
-    var notice_kick = {nick: '!', color: 'red'};
+    var notice_error = {nick: '!', color: 'red'};
+    var notice_kick = {nick: '!', color: 'orange'};
     var notice_mode = {nick: '!', color: 'yellow'};
-    var notice_nick = {nick: '!', color: 'orange'};
+    var notice_nick = {nick: '!', color: 'green'};
     var notice_status = {nick: '!', color: 'gray'};
 
     var self = this;
@@ -281,23 +292,26 @@ function irc_view_model (irc, color) {
                 // get the first space after the command
                 var nextspace = (text.indexOf(' ') + 1 || text.length + 1) - 1;
                 var command = text.slice(1,nextspace);
+                var params = text.slice(nextspace+1, text.length);
                 switch (command) {
                     case 'quit':
                         self.quit();
                         break;
                     case 'part':
-                        self.irc_client.part(self.active_channel().id(), text.slice(nextspace,text.length)); 
+                        if (self.active_channel().is_closable()) {
+                            self.irc_client.part(self.active_channel().id(), params);
+                        }
                         break;
                     case 'join':
-                        self;
+                        self.irc_client.join(params);
                         break;
                 }
                 
             } else {
                 // not a command, send as plain message
-               
+                self.sendMessage(text);
             }
-            self.sendMessage(text);
+
             e.target.innerHTML = "";
             return false;
         }
@@ -430,7 +444,7 @@ function irc_view_model (irc, color) {
             init: function (element, valueAccessor, allBindings, viewModel, bindingContext) {
                 var nicks = [];
 
-                var text = viewModel.text;
+                var text = ko.unwrap(valueAccessor());
 
                 var div = document.createElement("div");
 
@@ -440,14 +454,16 @@ function irc_view_model (irc, color) {
 
                 // use this regex, or a regex that matches nothing
                 var regex = new RegExp(nicks.join("|") || '$^', "g");
-
+                
+                // the text parts
                 var text_parts = text.split(regex);
+                // matched names
                 var text_matches = text.match(regex);
 
                 for (var i = 1; i < text_parts.length; i++) {
                     var t = document.createTextNode(text_parts[i - 1]);
                     element.appendChild(t);
-                    var user = bindingContext.$root.irc.getUser(text_matches[i-1]);
+                    var user = self.getUser(text_matches[i-1]);
                     var span = document.createElement("span");
                     element.appendChild(span);
 
@@ -630,7 +646,7 @@ function irc_view_model (irc, color) {
             reason = reason || "";
             // check if we are the ones parting right now
             if (nick === self.nick()) {
-                self.removeChannel(channel);
+                self.getChannel(channel).close();
             } else {
                 self.addMessageItem(channel, {
                     type: "notice",
@@ -701,6 +717,13 @@ function irc_view_model (irc, color) {
         });
 
         irc_client.on('error', function(message){
+            if (message.command === "err_nosuchchannel") {
+                status_channel.addMessageItem({
+                    type: "notice",
+                    text: message.args[1] + ' : ' + message.args[2],
+                    from: notice_error 
+                });
+            }
             
         });
 
