@@ -13,6 +13,17 @@
     </div>
 </script>
 
+<!-- name template -->
+<script type="text/html" id="irc-template-name">
+    <span class="irc-name" data-bind="text: $data.nick, style:{color:$data.color}, click:$data.on_click"></span>
+</script>
+
+<!-- channel template -->
+<script type="text/html" id="irc-template-channel">
+    <span class="irc-link" data-bind="text: $data, click: function(e, d) {$root.irc.join(d);}"></span>
+</script>
+
+
 <!-- message template -->
 <script type="text/html" id="irc-template-message-message">
     <div class="irc-message-line" data-bind="autoscroll : {}">
